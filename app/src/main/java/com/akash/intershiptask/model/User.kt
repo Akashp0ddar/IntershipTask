@@ -11,6 +11,5 @@ data class User(
     val description:String?=null,
     val imageView: Bitmap?=null,
     val video: String =""
-
 )
 

@@ -90,7 +90,6 @@ class AddPostFragment : Fragment() {
 
                 } else {
                     //Add data to Database
-
                     mUserViewModel.addUser(User(description = postDescription, video = video.toString()))
                 }
             }
@@ -137,7 +136,10 @@ class AddPostFragment : Fragment() {
     }
 
     private fun videoFromGallery() {
+        val flg: Int = Intent.FLAG_GRANT_WRITE_URI_PERMISSION or
+                Intent.FLAG_GRANT_READ_URI_PERMISSION
         val i = Intent(Intent.ACTION_PICK, MediaStore.Video.Media.EXTERNAL_CONTENT_URI)
+        i.setFlags(flg)
         startActivityForResult(i, REQUEST_VIDEO_CAPTURE)
 
     }

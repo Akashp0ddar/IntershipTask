@@ -25,23 +25,27 @@ class MyAdapter() : RecyclerView.Adapter<MyAdapter.ViewHolder>() {
     }
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-        if (userList[position].imageView != null) {
-            Log.e("image", "onBindViewHolder: ${userList[position].imageView!!}", )
+//        Log.d("TAG", "onBindViewHolder: ${userList.toString()}")
 
-            holder.binding.ivPostImage.visibility = View.VISIBLE
-            holder.binding.ivPostImage.setImageBitmap(userList[position].imageView)
-        }
         if (userList[position].video.isNotEmpty()) {
-            Log.e("Video", "onBindViewHolder: ${userList[position].video}", )
+            Log.d("TAG", "Video: ${userList[position].video }     "+position, )
             holder.binding.exoPlayer.visibility = View.VISIBLE
-            val mediaItem: MediaItem =  MediaItem.fromUri(Uri.parse(userList[position].video))
+            val mediaItem: MediaItem =  MediaItem.fromUri(userList[position].video)
+            Log.d("TAG", "video: ${mediaItem.mediaMetadata }     "+ position)
             holder.binding.exoPlayer.player?.apply {
                 addMediaItem(mediaItem)
                 prepare()
                 repeatMode = Player.REPEAT_MODE_ALL
                 playWhenReady = true
+
             }
+        } else{
+            Log.d("TAG", "Image: ${userList[position].imageView!!}     "+position, )
+
+            holder.binding.ivPostImage.visibility = View.VISIBLE
+            holder.binding.ivPostImage.setImageBitmap(userList[position].imageView)
         }
+
         holder.binding.tvDescription.text = userList[position].description
         holder.binding.tvId.text = userList[position].id.toString()
     }

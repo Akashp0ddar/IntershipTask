@@ -31,6 +31,6 @@ abstract class UserDataBase : RoomDatabase() {
                 return instance
             }
         }
-        
+
     }
 }
