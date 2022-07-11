@@ -1,5 +1,6 @@
 package com.akash.intershiptask.fragments.homescreen
 
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
@@ -12,14 +13,14 @@ class MyAdapter() : RecyclerView.Adapter<MyAdapter.ViewHolder>() {
     class ViewHolder(val binding: RvHomeSingleItemBinding) : RecyclerView.ViewHolder(binding.root)
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
-        val view =
-            RvHomeSingleItemBinding.inflate(LayoutInflater.from(parent.context), parent, false)
+        val view = RvHomeSingleItemBinding.inflate(LayoutInflater.from(parent.context), parent, false)
 
         return ViewHolder(view)
     }
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         holder.binding.tvDescription.text = userList[position].description
+        holder.binding.tvId.text = userList[position].id.toString()
     }
 
     override fun getItemCount(): Int {

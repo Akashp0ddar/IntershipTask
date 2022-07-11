@@ -1,5 +1,8 @@
 package com.akash.intershiptask.model
 
+import android.graphics.Bitmap
+import android.widget.ImageView
+import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 
@@ -7,5 +10,9 @@ import androidx.room.PrimaryKey
 data class User(
     @PrimaryKey(autoGenerate = true)
     val id:Int?=null,
-    val description:String?=null
+    val description:String?=null,
+
+    val imageView: Bitmap?=null
+
 )
+

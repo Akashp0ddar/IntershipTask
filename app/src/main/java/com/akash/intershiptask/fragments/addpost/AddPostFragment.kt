@@ -1,13 +1,16 @@
 package com.akash.intershiptask.fragments.addpost
 
+import android.content.ContentValues.TAG
 import android.content.Intent
 import android.graphics.Bitmap
 import android.os.Bundle
+import android.provider.MediaStore
 import android.text.TextUtils
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.PopupMenu
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
@@ -19,10 +22,14 @@ import com.akash.intershiptask.databinding.FragmentAddPostBinding
 import com.akash.intershiptask.model.User
 import com.akash.intershiptask.viewmodel.UserViewModel
 
+
 class AddPostFragment : Fragment() {
     private lateinit var binding: FragmentAddPostBinding
     private lateinit var mUserViewModel: UserViewModel
     private val REQUEST_IMAGE_CAPTURE = 22
+
+    private val REQUEST_VIDEO_CAPTURE = 25
+
     private val galleryImage = registerForActivityResult(ActivityResultContracts.GetContent()) {
         if (it != null) {
             binding.ivAddPost.setImageURI(it)
@@ -46,12 +53,14 @@ class AddPostFragment : Fragment() {
 
     private fun onClick() {
         binding.ivAddPost.setOnClickListener {
-            galleryImage.launch("image/*")
+            showPopUp()
+
         }
 
         binding.btnPost.setOnClickListener {
             insertDataToDatabase()
         }
+
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
@@ -67,6 +76,13 @@ class AddPostFragment : Fragment() {
                 Log.e("", "onActivityResult: $e")
             }
         }
+
+        if (requestCode == REQUEST_VIDEO_CAPTURE && resultCode == AppCompatActivity.RESULT_OK) {
+            binding.video.setVideoURI(data?.data)
+            binding.ivAddPost.visibility = View.GONE
+            binding.video.visibility = View.VISIBLE
+            binding.video.start()
+        }
     }
 
     private fun insertDataToDatabase() {
@@ -74,17 +90,46 @@ class AddPostFragment : Fragment() {
 
         if (inputCheck(postDescription)) {
             //Create User Object
-            val user = User(0,postDescription)
+            val user = User(description = postDescription)
             //Add data to Database
             mUserViewModel.addUser(user)
             //Navigate Back
             findNavController().navigate(R.id.action_addPostFragment_to_homeScreenFragment)
 
             Toast.makeText(requireContext(), "Successfully Post", Toast.LENGTH_SHORT).show()
+        } else {
+            Toast.makeText(requireContext(), "Please fill all the field", Toast.LENGTH_SHORT).show()
+
         }
     }
 
     private fun inputCheck(description: String): Boolean {
         return !(TextUtils.isEmpty(description))
     }
+
+    private fun showPopUp() {
+
+        val popUp = PopupMenu(requireContext(), binding.ivAddPost)
+        popUp.inflate(R.menu.popup)
+        popUp.setOnMenuItemClickListener {
+            when (it.itemId) {
+                R.id.image -> {
+                    galleryImage.launch("image/*")
+                    true
+                }
+                R.id.video -> {
+                    videoFromGallery()
+                    true
+                }
+                else -> true
+            }
+        }
+        popUp.show()
+    }
+
+    private fun videoFromGallery() {
+        val i = Intent(Intent.ACTION_PICK, MediaStore.Video.Media.EXTERNAL_CONTENT_URI)
+        startActivityForResult(i, REQUEST_VIDEO_CAPTURE)
+    }
+    
 }

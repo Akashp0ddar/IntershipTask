@@ -30,7 +30,7 @@ class HomeScreenFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        binding.rvHomeScreen.adapter = MyAdapter()
+        binding.rvHomeScreen.adapter = adapter
 
         mUserViewModel = ViewModelProvider(this).get(UserViewModel::class.java)
 

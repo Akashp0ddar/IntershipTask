@@ -9,10 +9,11 @@ import com.akash.intershiptask.model.User
 
 @Dao
 interface UserDao {
-    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun addPost(user: User)
 
     @Query("SELECT*FROM post_table")
      fun readAllData(): LiveData<List<User>>
+
 
 }
