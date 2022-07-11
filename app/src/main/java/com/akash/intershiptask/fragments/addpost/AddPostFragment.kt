@@ -1,8 +1,11 @@
 package com.akash.intershiptask.fragments.addpost
 
-import android.content.ContentValues.TAG
+import android.app.Activity.RESULT_OK
+import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
+import android.graphics.ImageDecoder
+import android.net.Uri
 import android.os.Bundle
 import android.provider.MediaStore
 import android.text.TextUtils
@@ -13,7 +16,6 @@ import android.view.ViewGroup
 import android.widget.PopupMenu
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.fragment.findNavController
@@ -21,17 +23,23 @@ import com.akash.intershiptask.R
 import com.akash.intershiptask.databinding.FragmentAddPostBinding
 import com.akash.intershiptask.model.User
 import com.akash.intershiptask.viewmodel.UserViewModel
+import java.io.File
+import java.net.URI
 
 
 class AddPostFragment : Fragment() {
     private lateinit var binding: FragmentAddPostBinding
     private lateinit var mUserViewModel: UserViewModel
-    private val REQUEST_IMAGE_CAPTURE = 22
 
+    private lateinit var imageBitmap: Bitmap
+    private lateinit var video: Uri
+    private var type = 0
     private val REQUEST_VIDEO_CAPTURE = 25
+
 
     private val galleryImage = registerForActivityResult(ActivityResultContracts.GetContent()) {
         if (it != null) {
+            imageBitmap = getImageUri(requireActivity(), it)
             binding.ivAddPost.setImageURI(it)
         }
     }
@@ -63,36 +71,29 @@ class AddPostFragment : Fragment() {
 
     }
 
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        super.onActivityResult(requestCode, resultCode, data)
-        if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == AppCompatActivity.RESULT_OK) {
-            try {
-                if (data?.extras != null) {
-                    Log.e("", "onActivityResult: ${data.extras!!.get("data")}")
-                    val imageBitmap = data.extras?.get("data") as Bitmap
-                    binding.ivAddPost.setImageBitmap(imageBitmap)
-                }
-            } catch (e: Exception) {
-                Log.e("", "onActivityResult: $e")
-            }
-        }
-
-        if (requestCode == REQUEST_VIDEO_CAPTURE && resultCode == AppCompatActivity.RESULT_OK) {
-            binding.video.setVideoURI(data?.data)
-            binding.ivAddPost.visibility = View.GONE
-            binding.video.visibility = View.VISIBLE
-            binding.video.start()
-        }
-    }
 
     private fun insertDataToDatabase() {
         val postDescription = binding.etDescription.text.toString()
 
         if (inputCheck(postDescription)) {
             //Create User Object
-            val user = User(description = postDescription)
-            //Add data to Database
-            mUserViewModel.addUser(user)
+
+            if (::imageBitmap.isInitialized || ::video.isInitialized) {
+                //Add data to Database
+                if (type == 0) {
+                    mUserViewModel.addUser(
+                        User(
+                            description = postDescription,
+                            imageView = imageBitmap
+                        )
+                    )
+
+                } else {
+                    //Add data to Database
+
+                    mUserViewModel.addUser(User(description = postDescription, video = video.toString()))
+                }
+            }
             //Navigate Back
             findNavController().navigate(R.id.action_addPostFragment_to_homeScreenFragment)
 
@@ -101,6 +102,12 @@ class AddPostFragment : Fragment() {
             Toast.makeText(requireContext(), "Please fill all the field", Toast.LENGTH_SHORT).show()
 
         }
+    }
+
+    fun getImageUri(inContext: Context, inImage: Uri): Bitmap {
+        val source: ImageDecoder.Source =
+            ImageDecoder.createSource(inContext.contentResolver, inImage)
+        return ImageDecoder.decodeBitmap(source)
     }
 
     private fun inputCheck(description: String): Boolean {
@@ -115,10 +122,12 @@ class AddPostFragment : Fragment() {
             when (it.itemId) {
                 R.id.image -> {
                     galleryImage.launch("image/*")
+                    type = 0
                     true
                 }
                 R.id.video -> {
                     videoFromGallery()
+                    type = 1
                     true
                 }
                 else -> true
@@ -130,6 +139,22 @@ class AddPostFragment : Fragment() {
     private fun videoFromGallery() {
         val i = Intent(Intent.ACTION_PICK, MediaStore.Video.Media.EXTERNAL_CONTENT_URI)
         startActivityForResult(i, REQUEST_VIDEO_CAPTURE)
+
     }
-    
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if (requestCode == REQUEST_VIDEO_CAPTURE && resultCode == RESULT_OK) {
+            if (data?.data != null) {
+                video = data.data!!
+                binding.video.visibility = View.VISIBLE
+                binding.ivAddPost.visibility = View.GONE
+                binding.video.setVideoURI(video)
+                binding.video.start()
+            }
+            Log.e("Video", "${data?.data}: ")
+        }
+
+    }
+
 }
